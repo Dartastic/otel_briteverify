@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_briteverify_suppression.dart';
 
@@ -48,48 +47,61 @@ Future<T> tracedBriteVerify<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_briteverify');
   final span = t.startSpan('briteverify $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'briteverify');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'briteverify')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.listId != null) {
-        span.setStringAttribute('briteverify.list.id', res.listId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('briteverify.list.id', res.listId!)]));
       }
       if (res.emailAddress != null) {
-        span.setStringAttribute('email.address', res.emailAddress!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('email.address', res.emailAddress!)]));
       }
       if (res.verificationResult != null) {
-        span.setStringAttribute('briteverify.result', res.verificationResult!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('briteverify.result', res.verificationResult!)
+        ]));
       }
       if (res.verificationDisposable != null) {
-        span.setBoolAttribute(
-          'briteverify.disposable',
-          res.verificationDisposable!,
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeBool(
+            'briteverify.disposable',
+            res.verificationDisposable!,
+          )
+        ]));
       }
       if (res.verificationRoleAddress != null) {
-        span.setBoolAttribute(
-          'briteverify.role_address',
-          res.verificationRoleAddress!,
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeBool(
+            'briteverify.role_address',
+            res.verificationRoleAddress!,
+          )
+        ]));
       }
       if (res.creditsUsed != null) {
-        span.setIntAttribute('briteverify.credits', res.creditsUsed!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('briteverify.credits', res.creditsUsed!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('briteverify.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('briteverify.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'briteverify.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'briteverify.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
